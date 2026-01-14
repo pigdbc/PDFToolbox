@@ -1,10 +1,8 @@
-# PDF Toolbox / PDF工具箱
+# PDF 工具箱 (macOS)
 
-每个功能都精心设计，简单易用。
+一个功能强大的 macOS PDF 工具箱，界面简洁，功能齐全。
 
 ![主界面预览](assets/preview.png)
-
-一个功能强大的跨平台PDF工具箱，支持Windows和macOS。
 
 ## 功能特性
 
@@ -18,47 +16,35 @@
 - 🔒 **安全** - PDF加密、解密、展平
 - 📝 **OCR** - 识别扫描PDF中的文字
 
-## 安装
+## 安装与运行
 
-### 1. 安装Python依赖
+### 快速启动
+双击 `run_mac.command` 即可运行，首次运行会自动安装依赖。
 
+### 手动安装
 ```bash
-pip install -r requirements.txt
+# 安装依赖
+pip3 install -r requirements.txt
+
+# 运行
+python3 main.py
 ```
 
-### 2. 安装Tesseract OCR（可选，用于OCR功能）
-
-**macOS:**
+### OCR功能（可选）
 ```bash
 brew install tesseract tesseract-lang
 ```
 
-**Windows:**
-下载并安装 [Tesseract OCR](https://github.com/UB-Mannheim/tesseract/wiki)
+## 系统要求
 
-## 运行
-
-```bash
-python main.py
-```
-
-## 打包为可执行文件
-
-```bash
-# 安装PyInstaller
-pip install pyinstaller
-
-# 打包
-pyinstaller --onefile --windowed --name "PDF工具箱" main.py
-```
+- macOS 10.15+
+- Python 3.9+
 
 ## 技术栈
 
-- Python 3.9+
 - PyQt6 - GUI框架
 - PyMuPDF - PDF处理
 - pdf2docx - PDF转Word
-- 其他依赖见 requirements.txt
 
 ## 许可证
 
