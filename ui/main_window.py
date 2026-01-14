@@ -312,35 +312,40 @@ class PageSelectorWidget(QWidget):
 
 
 class DraggablePageItem(QFrame):
-    """可选择的页面缩略图"""
+    """可选择的页面缩略图 - 支持动态尺寸"""
     
     clicked = pyqtSignal(int)  # 点击信号
     
-    def __init__(self, page_num, pixmap, parent=None):
+    def __init__(self, page_num, pixmap, width=120, height=160, parent=None):
         super().__init__(parent)
         self.page_num = page_num
         self.selected = False
-        self.setFixedSize(120, 160)
+        self.item_width = width
+        self.item_height = height
+        self.setFixedSize(width, height)
         self.update_style()
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(4, 4, 4, 4)
-        layout.setSpacing(4)
+        layout.setContentsMargins(3, 3, 3, 3)
+        layout.setSpacing(2)
         
-        # 缩略图
+        # 缩略图 (留出边距和页码空间)
+        thumb_width = width - 10
+        thumb_height = height - 25
         thumb_label = QLabel()
-        scaled = pixmap.scaled(100, 120, Qt.AspectRatioMode.KeepAspectRatio, 
+        scaled = pixmap.scaled(thumb_width, thumb_height, Qt.AspectRatioMode.KeepAspectRatio, 
                                Qt.TransformationMode.SmoothTransformation)
         thumb_label.setPixmap(scaled)
         thumb_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         thumb_label.setStyleSheet("background: transparent;")
         layout.addWidget(thumb_label)
         
-        # 页码
+        # 页码 (根据尺寸调整字体)
+        font_size = max(9, min(11, width // 12))
         self.page_label = QLabel(f"第 {page_num + 1} 页")
         self.page_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.page_label.setStyleSheet("color: #1e2537; font-size: 11px; background: transparent;")
+        self.page_label.setStyleSheet(f"color: #1e2537; font-size: {font_size}px; background: transparent;")
         layout.addWidget(self.page_label)
     
     def update_style(self):
@@ -434,23 +439,37 @@ class PageReorderWidget(QWidget):
         btn_layout.addStretch()
         layout.addLayout(btn_layout)
         
-        # 滚动区域
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
-        scroll.setMinimumHeight(200)
-        scroll.setMaximumHeight(300)
+        # 滚动区域 - 允许更大的显示区域
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        self.scroll.setMinimumHeight(200)
+        self.scroll.setMaximumHeight(500)  # 增加最大高度以显示更多页面
         
         self.container = QWidget()
         self.grid_layout = QGridLayout(self.container)
-        self.grid_layout.setSpacing(10)
+        self.grid_layout.setSpacing(8)
         self.grid_layout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         
-        scroll.setWidget(self.container)
-        layout.addWidget(scroll)
+        self.scroll.setWidget(self.container)
+        layout.addWidget(self.scroll)
         
         self.setVisible(False)
+    
+    def calculate_thumbnail_size(self, page_count):
+        """根据页面数量计算合适的缩略图尺寸和列数"""
+        # 页面越多，缩略图越小，每行显示更多
+        if page_count <= 5:
+            return 120, 160, 5   # 大尺寸，5列
+        elif page_count <= 10:
+            return 100, 135, 6   # 中等尺寸，6列
+        elif page_count <= 20:
+            return 85, 115, 7    # 较小尺寸，7列
+        elif page_count <= 40:
+            return 70, 95, 8     # 小尺寸，8列
+        else:
+            return 60, 82, 10    # 最小尺寸，10列
     
     def load_pdf(self, pdf_path):
         """加载PDF并显示页面缩略图"""
@@ -459,12 +478,19 @@ class PageReorderWidget(QWidget):
         
         try:
             doc = fitz.open(pdf_path)
-            self.page_order = list(range(len(doc)))
+            page_count = len(doc)
+            self.page_order = list(range(page_count))
             
-            cols = 5
+            # 根据页面数量动态计算尺寸
+            item_width, item_height, cols = self.calculate_thumbnail_size(page_count)
+            self.current_cols = cols
+            
+            # 根据尺寸调整渲染比例
+            scale = 0.2 if page_count > 20 else 0.3
+            
             for i, page in enumerate(doc):
                 # 渲染缩略图
-                mat = fitz.Matrix(0.3, 0.3)
+                mat = fitz.Matrix(scale, scale)
                 pix = page.get_pixmap(matrix=mat)
                 
                 # 转换为QPixmap
@@ -472,8 +498,8 @@ class PageReorderWidget(QWidget):
                            pix.stride, QImage.Format.Format_RGB888)
                 pixmap = QPixmap.fromImage(img)
                 
-                # 创建可选择项
-                item = DraggablePageItem(i, pixmap)
+                # 创建可选择项 (传入动态尺寸)
+                item = DraggablePageItem(i, pixmap, item_width, item_height)
                 item.clicked.connect(self.on_page_clicked)
                 self.page_items.append(item)
                 
@@ -549,8 +575,8 @@ class PageReorderWidget(QWidget):
         for item in self.page_items:
             self.grid_layout.removeWidget(item)
         
-        # 按新顺序添加
-        cols = 5
+        # 按新顺序添加 (使用动态列数)
+        cols = getattr(self, 'current_cols', 5)
         for i, page_idx in enumerate(self.page_order):
             item = self.page_items[page_idx]
             row = i // cols
