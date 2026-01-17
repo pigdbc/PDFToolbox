@@ -20,7 +20,7 @@
 
 ### 方式一：DMG 安装包（推荐）
 
-1. 从 [Releases](https://github.com/你的用户名/PDFToolbox/releases) 下载最新的 `PDF工具箱-vX.X.X-macOS.dmg`
+1. 从 [Releases](https://github.com/pigdbc/PDFToolbox/releases) 下载最新的 `PDF工具箱-vX.X.X-macOS.dmg`
 2. 双击 DMG 挂载
 3. 将「PDF工具箱」拖入「应用程序」文件夹
 
@@ -36,7 +36,7 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/你的用户名/PDFToolbox.git
+git clone https://github.com/pigdbc/PDFToolbox.git
 cd PDFToolbox
 
 # 安装依赖
