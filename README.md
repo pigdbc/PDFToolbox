@@ -16,13 +16,29 @@
 - 🔒 **安全** - PDF加密、解密、展平
 - 📝 **OCR** - 识别扫描PDF中的文字
 
-## 安装与运行
+## 安装方式
 
-### 快速启动
-双击 `run_mac.command` 即可运行，首次运行会自动安装依赖。
+### 方式一：DMG 安装包（推荐）
 
-### 手动安装
+1. 从 [Releases](https://github.com/你的用户名/PDFToolbox/releases) 下载最新的 `PDF工具箱-vX.X.X-macOS.dmg`
+2. 双击 DMG 挂载
+3. 将「PDF工具箱」拖入「应用程序」文件夹
+
+> ⚠️ **首次打开提示"无法验证开发者"？**
+> 
+> 由于应用未经 Apple 签名，macOS 会阻止打开。请在终端运行以下命令解除限制：
+> ```bash
+> sudo xattr -rd com.apple.quarantine /Applications/PDF工具箱.app
+> ```
+> 然后重新打开应用即可。
+
+### 方式二：源码运行
+
 ```bash
+# 克隆仓库
+git clone https://github.com/你的用户名/PDFToolbox.git
+cd PDFToolbox
+
 # 安装依赖
 pip3 install -r requirements.txt
 
@@ -30,7 +46,10 @@ pip3 install -r requirements.txt
 python3 main.py
 ```
 
+或双击 `run_mac.command` 即可运行（首次运行会自动安装依赖）。
+
 ### OCR功能（可选）
+
 ```bash
 brew install tesseract tesseract-lang
 ```
@@ -38,13 +57,14 @@ brew install tesseract tesseract-lang
 ## 系统要求
 
 - macOS 10.15+
-- Python 3.9+
+- Apple Silicon (M1/M2/M3) 或 Intel
 
 ## 技术栈
 
 - PyQt6 - GUI框架
 - PyMuPDF - PDF处理
 - pdf2docx - PDF转Word
+- pdfplumber - 表格提取
 
 ## 许可证
 

@@ -7,11 +7,25 @@ PDF工具箱 - 跨平台PDF处理应用
 import sys
 import os
 
+def resource_path(relative_path):
+    """获取资源文件的绝对路径，支持 PyInstaller 打包"""
+    if hasattr(sys, '_MEIPASS'):
+        # PyInstaller 打包后的临时目录
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), relative_path)
+
 # 确保能够找到模块
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# 在导入 PyQt6 前设置 Qt 相关环境变量（解决打包后崩溃问题）
+if hasattr(sys, '_MEIPASS'):
+    # 设置 Qt 插件路径
+    os.environ['QT_PLUGIN_PATH'] = os.path.join(sys._MEIPASS, 'PyQt6', 'Qt6', 'plugins')
+    # 禁用 Qt 的一些可能导致问题的功能
+    os.environ['QT_MAC_WANTS_LAYER'] = '1'
+
 from PyQt6.QtWidgets import QApplication
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QLibraryInfo
 from PyQt6.QtGui import QFont
 
 from ui.main_window import MainWindow
@@ -37,8 +51,7 @@ def main():
     app.setFont(font)
     
     # 加载样式表
-    # 直接使用相对路径，适合开发环境
-    style_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ui", "styles.qss")
+    style_path = resource_path(os.path.join("ui", "styles.qss"))
     if os.path.exists(style_path):
         with open(style_path, "r", encoding="utf-8") as f:
             app.setStyleSheet(f.read())
