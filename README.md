@@ -2,7 +2,9 @@
 
 一个功能强大的 macOS PDF 工具箱，界面简洁，功能齐全。
 
-![主界面预览](assets/preview.png)
+<p align="center">
+  <img src="assets/preview.png" width="800" alt="主界面预览">
+</p>
 
 ## 功能特性
 
